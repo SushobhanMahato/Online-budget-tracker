@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Djanjo Chat-home</title>
+<style>
+    html{
+        scroll-behavior: smooth;
+    }
+    
+    body{
+        padding: 0px;
+        margin: 0px;
+        margin-top: -1em;
+        background-color: rgb(20, 220, 20);
+    }
+    
+    .logo{
+       padding: 0;
+       margin: 0;
+       padding-top: 8%;
+       width: 100%;
+       min-height: 100%;
+       display:flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    
+    nav{
+
+        height:10vh;
+        margin: 0px 0px;
+        background-color: #008000;
+    }
+    .nav-links{
+        height:100%;
+        width:50%;
+        list-style: none;
+        display:flex;
+        justify-content: space-around;
+        align-items: center;
+     
+    }
+    
+    .nav-links a{
+        margin: 0px;
+        font-size: 1.15em;
+        color:rgb(67, 223, 197);
+        text-decoration: none;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 500;
+    }
+    
+    
+    .nav-links a::after {
+        display: block;
+        content: attr(data-tooltip);
+        font-weight: bold;
+        height: 1px;
+        color: transparent;
+        overflow: hidden;
+        visibility: hidden;
+        
+      }
+    
+    
+    .nav-links a:hover{
+        font-weight: 700;
+    }
+    .onto{
+        width: 80%;
+        min-height: 100%;
+    }
+    .about{
+        float:right;
+        width: 50%;
+        box-sizing: border-box;
+    }
+    .about1{
+        float: left;
+        width: 50%;
+        box-sizing: border-box;
+    }
+    
+    .ok{
+        font-weight: 300;
+        margin-top: 0px;
+        margin-bottom: 2vh;
+        color: white;
+        font-size: 1.2em;
+        font-family: 'Montserrat', 'sans-serif';
+    }
+    .hh{
+        width:90%;
+        text-align:center;
+    }
+    .hh a{
+        font-size: 1.9em;
+        font-family: 'Raleway';
+        margin-top: 0px;
+        margin-bottom: 8vh;
+        text-decoration: none;
+    }
+    .hh h1{
+        margin: 0;
+        padding: 0;
+        background-color:rgb(250,100,50);
+        border-radius: 10px;
+    }
+    .hh a:hover{
+        text-decoration: underline 3px;
+        font-weight: 600;
+        color: rgb(200, 87, 51);
+        box-shadow: 0px 0px 20px 0px #232323;
+    }
+ 
+    .footer{
+       padding-top: 50px;
+        width: 100%;
+        height: 10px;
+        color : red;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+      }
+      .footer a{
+        text-decoration: none; 
+      }
+
+    @media(max-width:1200px){
+         
+         nav{
+     
+             height:5vh;
+         }
+         .nav-links{
+            height:100%;
+            width:80%;
+        }
+         .onto{
+             display: flex;
+             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+         }
+         
+         .about{
+             width: 100%;
+         }
+         .about1{
+             width: 100%;
+         }
+
+         .hh h1{
+            font-size: 1.1em;
+         }
+         .hh p{
+            font-size: 0.4em;
+         }
+
+    }
+    @media(max-width:330px){
+        .hh{
+            width:95%;
+        }
+        .hh a{
+            font-size: 1.6em;
+        }
+    }
+</style>
+</head>
+<body>
+        <nav>
+          <ul class="nav-links">
+         
+            {% if user.is_authenticated %}
+            <li><a>Hii, {{user.first_name}} </a></li>
+            <li><a href="logout">Log out</a></li>
+            {% else %}
+            <li><a href="register">create new account</a></li>
+            <li><a href="login">Log in</a></li>
+            {% endif %} 
+
+          </ul>
+        </nav>
+     <div class="logo">
+      <div class="onto">
+          <div class="about" id="home">
+            <img src="{% static 'images/chat.jpg' %}" alt="" width="100%" height="70%">
+          </div>
+          <div class="about1">
+            <div class="ok">
+          <div class="hh">
+            {% if user.is_authenticated %}
+             <a href="home1">
+            {% else %}
+            <a href="login">
+            {% endif %} 
+            <h1>Track your budget</h1></a>
+            </div>
+        
+            </div>
+        </div>
+      </div>
+    </div>
+      
+</body>
+
+</html>

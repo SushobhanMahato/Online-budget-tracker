@@ -1,0 +1,395 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <!-- <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.0/build/global/luxon.min.js"></script>
+   Include Moment.js 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment-with-locales.min.js"></script>
+-->
+<!-- Include Luxon -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/2.0.0/luxon.min.js"></script>
+
+  <title>Interactive Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f19292c4;
+    
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+     
+    }
+
+    #addButton {
+      padding: 12px;
+      background-color: #3498db;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 20px;
+      width: 150px;
+      text-align: center;
+    }
+    #addButton2 {
+      padding: 12px;
+      background-color: #3498db;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 20px;
+      width: 150px;
+      text-align: center;
+    }
+
+    #formContainer {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      width: 150px;
+    }
+    #formContainer2 {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      width: 150px;
+    }
+    input {
+      margin-bottom: 10px;
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #submitButton {
+      padding: 10px;
+      background-color: #2ecc71;
+      color: #fff;
+      cursor: pointer;
+    }
+    #submitButton2 {
+      padding: 10px;
+      background-color: #2ecc71;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    #displaySection {
+      max-width: 150px;
+      margin-bottom: 20px;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    #displaySection label {
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .chart{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 1000px;
+    }
+    canvas {
+      max-width: 80%;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="addButton" onclick="toggleForm()">Add Total Budget</div>
+
+  <div id="formContainer">
+    <form onclick="event.stopPropagation();" method="post" action="http://127.0.0.1:8080/create-total-budget/">
+      {% csrf_token %}
+      <label for="field1">Total amount:</label>
+      <input type="text" id="field1" name="total_amount" required>
+
+      <label for="field2"> Savings goal:</label>
+      <input type="text" id="field2" name="savings_goal" required>
+
+      <label for="field3">Date:</label>
+      <input type="text" id="field3" name="start_date" required>
+      
+      <div id="submitButton" onclick="submitForm()">Submit</div>
+    </form>
+  </div>
+  
+  <div id="displaySection"></div>
+
+
+  <div id="addButton2" onclick="toggleForm2()">Add daily expance</div>
+  <div id="formContainer2">
+    <form onclick="event.stopPropagation();" method="post" action="http://127.0.0.1:8080/create-daily-expance/">
+      {% csrf_token %}
+      <label for="field4">Amount:</label>
+      <input type="text" id="field4" name="amount" required>
+
+      <label for="field5">Date:</label>
+      <input type="text" id="field5" name="date" required>
+      
+      <div id="submitButton2" onclick="submitForm2()">Submit</div>
+
+    </form>
+
+  </div>
+  <div class="chart">
+  <h2>Daily Expenses Chart</h2>
+  <canvas id="myChart"></canvas>
+  </div>
+  <script>
+      function toggleForm() {
+      var formContainer = document.getElementById('formContainer');
+      formContainer.style.display = (formContainer.style.display === 'block') ? 'none' : 'block';
+    }
+    function toggleForm2() {
+      var formContainer = document.getElementById('formContainer2');
+      formContainer.style.display = (formContainer.style.display === 'block') ? 'none' : 'block';
+    }
+    function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+  async function submitForm() {
+      var displaySection = document.getElementById('displaySection');
+      var total_amount = document.getElementById('field1').value;
+      var savings_goal = document.getElementById('field2').value;
+      var start_date = document.getElementById('field3').value;
+
+
+      var username = "{{user.username}}";
+      // Send data to the first API to create total budget
+    const csrfToken = getCookie('csrftoken');
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Accept", "application/json");
+    myHeaders.append("X-CSRFToken", csrfToken);
+
+    var raw = JSON.stringify({
+      total_amount: total_amount,
+      savings_goal: savings_goal,
+      start_date: start_date,
+      username: username,
+    });
+
+    var requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow",
+    };
+
+      try {
+        const createresponse = await fetch(`http://127.0.0.1:8080/create-total-budget/`, requestOptions);
+        const result = await createresponse.json();
+        console.log(result);
+        if (!createresponse.ok) {
+          throw new Error(`Failed to create total budget: ${createresponse.statusText}`);
+        }
+        // Hide the form after submission
+        toggleForm();
+      } catch (error) {
+        console.error(error);
+        // Handle error, show a message to the user, etc.
+      }
+    }
+async function displayTotalBudget(username, csrfToken) {
+  try {
+    // Send data to the second API to get total budget
+    const getTotalResponse = await fetch('http://127.0.0.1:8080/get-total-budget/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
+      body: JSON.stringify({
+        username: username,
+      }),
+    });
+
+    if (!getTotalResponse.ok) {
+      throw new Error(`Failed to get total budget: ${getTotalResponse.statusText}`);
+    }
+
+    const totalBudgetData = await getTotalResponse.json();
+
+    // Display entered values and retrieved total budget values
+    displaySection.innerHTML = `
+      <label>Total Amount:</label>
+      <p>${totalBudgetData.total_amount} Rs.</p>
+      <label>Savings Goal:</label>
+      <p>${totalBudgetData.savings_goal} Rs.</p>
+      <label>Start Date:</label>
+      <p>${totalBudgetData.start_date}</p>
+      <label>Used amount:</label>
+      <p>${totalBudgetData.used_amount} Rs.</p>
+      <label>Remaining amount:</label>
+      <p>${totalBudgetData.remaining_amount} Rs.</p>
+    `;
+  } catch (error) {
+    console.error(error);
+    // Handle error, show a message to the user, etc.
+  }
+}
+
+// Call this function when the user logs in or when you want to update the displayed values
+// Replace 'siju' and csrfToken with the actual values
+function displayLineChart(data) {
+  var ctx = document.getElementById('myChart').getContext('2d');
+
+  // Sort data by date
+  data.sort((a, b) => new Date(a.date) - new Date(b.date));
+  console.log(data);
+  var chartData = {
+    labels: data.map(entry => entry.date),
+    datasets: [{
+      label: 'Amount',
+      data: data.map(entry => entry.amount),
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderWidth: 2,
+      fill: false,
+    }]
+  };
+
+  var myChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Date'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Amount'
+          }
+        }
+      }
+    }
+  });
+}
+
+async function displayExpanceGraph(username, csrfToken) {
+  try {
+    // Send data to the second API to get total budget
+    const getTotalResponse = await fetch('http://127.0.0.1:8080/get-daily-expance/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
+      body: JSON.stringify({
+        username: username,
+      }),
+    });
+
+    if (!getTotalResponse.ok) {
+      throw new Error(`Failed to get total budget: ${getTotalResponse.statusText}`);
+    }
+
+    const dailyExpanceData = await getTotalResponse.json();
+    displayLineChart(dailyExpanceData.data);
+  
+  } catch (error) {
+    console.error(error);
+    // Handle error, show a message to the user, etc.
+  }
+}
+
+var username = "{{user.username}}";
+      // Send data to the first API to create total budget
+const csrfToken = getCookie('csrftoken');
+
+displayTotalBudget(username, csrfToken);
+    // Close the form when clicking outside of it
+
+displayExpanceGraph(username, csrfToken);
+
+async function submitForm2() {
+      var amount = document.getElementById('field4').value;
+      var date = document.getElementById('field5').value;
+
+
+    var username = "{{user.username}}";
+      // Send data to the first API to create total budget
+    const csrfToken = getCookie('csrftoken');
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Accept", "application/json");
+    myHeaders.append("X-CSRFToken", csrfToken);
+
+    var raw = JSON.stringify({
+      amount: amount,
+      date: date,
+      username: username,
+    });
+
+    var requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow",
+    };
+
+      try {
+        const createresponse = await fetch(`http://127.0.0.1:8080/create-daily-expance/`, requestOptions);
+        const result = await createresponse.json();
+        console.log(result);
+        if (!createresponse.ok) {
+          throw new Error(`Failed to create total budget: ${createresponse.statusText}`);
+        }
+        // Hide the form after submission
+        toggleForm2();
+      } catch (error) {
+        console.error(error);
+        // Handle error, show a message to the user, etc.
+      }
+    }
+
+
+
+
+
+
+
+
+
+    window.onclick = function(event) {
+      var formContainer = document.getElementById('formContainer');
+      if (event.target !== formContainer && event.target !== document.getElementById('addButton')) {
+        formContainer.style.display = 'none';
+      }
+      var formContainer2 = document.getElementById('formContainer2');
+      if (event.target !== formContainer2 && event.target !== document.getElementById('addButton2')) {
+        formContainer2.style.display = 'none';
+      }
+    }
+  </script>
+
+</body>
+</html>
